@@ -1,0 +1,14 @@
+2b236984057ddcb65b9280033ca43da2 *DESCRIPTION
+9a5f5e0795f4537fb500b341e52dfda6 *NAMESPACE
+680318a34b21db4d1d5ef53c3c597675 *R/rzmq.R
+55814ff9061650764acb30e56a31fca5 *README.rst
+c01622fc57d42fd2fd2206b931dd3f62 *man/bind.socket.Rd
+2df1c91b8989135377671b9be11dcc94 *man/connect.socket.Rd
+8b19dc6168e520498e8152c27a697736 *man/create.sink.Rd
+d021e2b44de8c4e593a9b7a9485590f1 *man/init.context.Rd
+d558a9c00e08747948a815d97d457802 *man/receive.socket.Rd
+25b3b8ad9e69f133589a923a39bcc707 *man/send.socket.Rd
+1ef55b5afea7e097b2382ed02b9a9d87 *src/Makevars
+8df7155145effd07649df3c8285db932 *src/interface.cpp
+e31f906cc6a5ff0d7332eb321d290ddc *src/interface.h
+28346fac29dada5ec02cfde86f033fff *src/sink.h
