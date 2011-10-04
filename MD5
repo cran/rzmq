@@ -1,6 +1,6 @@
-2b236984057ddcb65b9280033ca43da2 *DESCRIPTION
-9a5f5e0795f4537fb500b341e52dfda6 *NAMESPACE
-680318a34b21db4d1d5ef53c3c597675 *R/rzmq.R
+ba0a3de3a3f06f7c05d3d345546c879f *DESCRIPTION
+227da3a0a2793df1d16102a2a34aca5b *NAMESPACE
+623b2fbe8b4ed1e603ba1ae2e79473a8 *R/rzmq.R
 55814ff9061650764acb30e56a31fca5 *README.rst
 c01622fc57d42fd2fd2206b931dd3f62 *man/bind.socket.Rd
 2df1c91b8989135377671b9be11dcc94 *man/connect.socket.Rd
@@ -8,7 +8,8 @@ c01622fc57d42fd2fd2206b931dd3f62 *man/bind.socket.Rd
 d021e2b44de8c4e593a9b7a9485590f1 *man/init.context.Rd
 d558a9c00e08747948a815d97d457802 *man/receive.socket.Rd
 25b3b8ad9e69f133589a923a39bcc707 *man/send.socket.Rd
+a5ba496d470e3259e42ec12b7f03a227 *man/zmq.lapply.Rd
 1ef55b5afea7e097b2382ed02b9a9d87 *src/Makevars
-8df7155145effd07649df3c8285db932 *src/interface.cpp
-e31f906cc6a5ff0d7332eb321d290ddc *src/interface.h
-28346fac29dada5ec02cfde86f033fff *src/sink.h
+b4165ae7174cbf874fd9d8ed5f3c0ee9 *src/interface.cpp
+bef67d326ba9c0ddca9c4d1844ede1c4 *src/interface.h
+157f2d3a4f45673b75440fdf17adebfd *src/sink.h

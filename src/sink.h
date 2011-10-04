@@ -20,10 +20,9 @@
 #define SINK_HPP
 
 #include <vector>
-#include <iostream>
 #include <pthread.h>
 #include <zmq.hpp>
-//#include <Rinternals.h>
+#include <Rinternals.h>
 
 class Sink {
 private:
@@ -59,7 +58,7 @@ public:
     try {
       receiver.connect(address_);
     } catch(std::exception& e) {
-      std::cerr << e.what() << std::endl;
+      REprintf("%s\n",e.what());
       // we don't want to execute the thread
       // if it can't connect
       return;
@@ -80,8 +79,10 @@ public:
 
   SEXP getResults() {
     SEXP ans, x;
-    while(msgs_received < num_items_) {
-      sleep(1);
+    int worker_exit = pthread_join(worker_, NULL);
+    if(worker_exit != 0) {
+      REprintf("Sink worker had non-zero exit: %d\n",worker_exit);
+      return R_NilValue;
     }
     PROTECT(ans = allocVector(VECSXP,results_.size()));
     for(size_t i = 0; i < results_.size(); i++) {
