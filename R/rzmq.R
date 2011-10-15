@@ -35,9 +35,25 @@ send.socket <- function(socket, data) {
     .Call("sendSocket", socket, serialize(data,NULL), PACKAGE="rzmq")
 }
 
+send.null.msg <- function(socket) {
+    .Call("sendNullMsg", socket, PACKAGE="rzmq")
+}
+
 receive.socket <- function(socket) {
     ans <- .Call("receiveSocket", socket, PACKAGE="rzmq")
     unserialize(ans)
+}
+
+receive.string <- function(socket) {
+    .Call("receiveString", socket, PACKAGE="rzmq")
+}
+
+receive.int <- function(socket) {
+    .Call("receiveInt", socket, PACKAGE="rzmq")
+}
+
+receive.double <- function(socket) {
+    .Call("receiveDouble", socket, PACKAGE="rzmq")
 }
 
 create.sink <- function(address, num_items) {
@@ -48,7 +64,7 @@ get.sink.results <- function(sink) {
     .Call("getSinkResults", sink, PACKAGE="rzmq")
 }
 
-zmq.lapply <- function(X,FUN,execution.server,sink.server) {
+zmq.cluster.lapply <- function(cluster,X,FUN,...,deathstar.port=6000,control.port=6001) {
     remote.exec <- function(socket,index,fun,...) {
         send.socket(socket,data=list(index=index,fun=fun,args=list(...)))
     }
@@ -57,22 +73,45 @@ zmq.lapply <- function(X,FUN,execution.server,sink.server) {
     if (!is.vector(X) || is.object(X))
         X <- as.list(X)
 
-    context = init.context()
-    execution.socket = init.socket(context,"ZMQ_PUSH")
-    connect.socket(execution.socket,execution.server)
-
-    ## listen for results on the sink server
     N <- length(X)
-    sink <- create.sink(sink.server,N)
+    context = init.context()
+    ## using a dealer socket locally will cache the requests in local and remote buffers
+    ## this could fail if your request messages are big enough to exhaust swap space
+    ## on local or remote devices, however if your messaing workflow is this large, then
+    ## you should either use s3 to move your data across, and use messages to index into it
+    ## or write your own messaging pattern
+    execution.socket = init.socket(context,"ZMQ_DEALER")
+
+    ## connect exec socket to all remote servers
+    control.endpoints <- paste("tcp://",cluster,":",control.port,sep="")
+    exec.endpoints <- paste("tcp://",cluster,":",deathstar.port,sep="")
+
+    ## ensure ndoes are available for execution
+    ## to avoid msg hogging / slow joiner issues
+    for(node in control.endpoints) {
+        cat("checking",node,"status: ")
+        control.socket = init.socket(context,"ZMQ_REQ")
+        connect.socket(control.socket,node)
+        send.null.msg(control.socket)
+        status <- receive.string(control.socket)
+        cat(status,"\n")
+    }
+
+    ## connect to remote nodes
+    for(node in exec.endpoints) {
+        connect.socket(execution.socket,node)
+    }
 
     ## submit jobs
     for(i in 1:N) {
-        remote.exec(socket=execution.socket,index=i,fun=FUN,X[[i]])
+        remote.exec(socket=execution.socket,index=i,fun=FUN,X[[i]],...)
     }
 
     ## pick up restuls
-    ans.raw <- get.sink.results(sink)
-    ans <- lapply(ans.raw,unserialize)
+    ans <- vector("list",N)
+    for(i in 1:N) {
+        ans[[i]] <- receive.socket(execution.socket)
+    }
 
     ## reorder anser based on returned index numbers
     ans.ordered <- vector("list",N)
@@ -85,5 +124,8 @@ zmq.lapply <- function(X,FUN,execution.server,sink.server) {
     for(i in 1:N) {
         ans.ordered[[ ans[[i]]$index ]] <- ans[[i]]$result
     }
+
+    execution.report <- as.matrix(table(unlist(lapply(ans,"[[","node"))))
+    attr(ans.ordered,"execution.report") <- execution.report
     ans.ordered
 }

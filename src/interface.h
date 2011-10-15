@@ -24,7 +24,6 @@
 
 static void contextFinalizer(SEXP context_);
 static void socketFinalizer(SEXP socket_);
-static void sinkFinalizer(SEXP sink_);
 
 extern "C" {
   SEXP initContext();
@@ -32,9 +31,11 @@ extern "C" {
   SEXP bindSocket(SEXP socket_, SEXP address_);
   SEXP connectSocket(SEXP socket_, SEXP address_);
   SEXP sendSocket(SEXP socket_, SEXP data_);
+  SEXP sendNullMsg(SEXP socket_);
   SEXP receiveSocket(SEXP socket_);
-  SEXP createSink(SEXP address_, SEXP num_items_);
-  SEXP getSinkResults(SEXP sink_);
+  SEXP receiveString(SEXP socket_);
+  SEXP receiveInt(SEXP socket_);
+  SEXP receiveDouble(SEXP socket_);
 }
 
 #endif // INTERFACE_HPP
