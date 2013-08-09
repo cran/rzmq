@@ -1,17 +1,33 @@
 useDynLib(rzmq)
 
-export(
+export(zmq.version,
        init.context,
        init.socket,
        bind.socket,
        connect.socket,
        send.socket,
        send.null.msg,
+       receive.null.msg,
        receive.socket,
+       send.raw.string,
        receive.string,
        receive.int,
        receive.double,
-       create.sink,
-       get.sink.results,
-       zmq.cluster.lapply
+       set.hwm,
+       set.swap,
+       set.affinity,
+       set.identity,
+       subscribe,
+       unsubscribe,
+       set.rate,
+       set.recovery.ivl,
+       set.recovery.ivl.msec,
+       set.mcast.loop,
+       set.sndbuf,
+       set.rcvbuf,
+       set.linger,
+       set.reconnect.ivl,
+       set.zmq.backlog,
+       set.reconnect.ivl.max,
+       get.rcvmore
        )

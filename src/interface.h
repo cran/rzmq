@@ -24,18 +24,40 @@
 
 static void contextFinalizer(SEXP context_);
 static void socketFinalizer(SEXP socket_);
+SEXP rzmq_serialize(SEXP data, SEXP rho);
+SEXP rzmq_unserialize(SEXP data, SEXP rho);
 
 extern "C" {
+  SEXP get_zmq_version();
   SEXP initContext();
   SEXP initSocket(SEXP context_, SEXP socket_type_);
   SEXP bindSocket(SEXP socket_, SEXP address_);
   SEXP connectSocket(SEXP socket_, SEXP address_);
-  SEXP sendSocket(SEXP socket_, SEXP data_);
-  SEXP sendNullMsg(SEXP socket_);
+  SEXP sendSocket(SEXP socket_, SEXP data_, SEXP send_more_);
+  SEXP sendNullMsg(SEXP socket_, SEXP send_more_);
+  SEXP receiveNullMsg(SEXP socket_);
+  SEXP sendRawString(SEXP socket_, SEXP data_, SEXP send_more_);
   SEXP receiveSocket(SEXP socket_);
   SEXP receiveString(SEXP socket_);
   SEXP receiveInt(SEXP socket_);
   SEXP receiveDouble(SEXP socket_);
+  SEXP set_hwm(SEXP socket_, SEXP option_value_);
+  SEXP set_swap(SEXP socket_, SEXP option_value_);
+  SEXP set_affinity(SEXP socket_, SEXP option_value_);
+  SEXP set_identity(SEXP socket_, SEXP option_value_);
+  SEXP subscribe(SEXP socket_, SEXP option_value_);
+  SEXP unsubscribe(SEXP socket_, SEXP option_value_);
+  SEXP set_rate(SEXP socket_, SEXP option_value_);
+  SEXP set_recovery_ivl(SEXP socket_, SEXP option_value_);
+  SEXP set_recovery_ivl_msec(SEXP socket_, SEXP option_value_);
+  SEXP set_mcast_loop(SEXP socket_, SEXP option_value_);
+  SEXP set_sndbuf(SEXP socket_, SEXP option_value_);
+  SEXP set_rcvbuf(SEXP socket_, SEXP option_value_);
+  SEXP set_linger(SEXP socket_, SEXP option_value_);
+  SEXP set_reconnect_ivl(SEXP socket_, SEXP option_value_);
+  SEXP set_zmq_backlog(SEXP socket_, SEXP option_value_);
+  SEXP set_reconnect_ivl_max(SEXP socket_, SEXP option_value_);
+  SEXP get_rcvmore(SEXP socket_);
 }
 
 #endif // INTERFACE_HPP

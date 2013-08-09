@@ -15,6 +15,10 @@
 ## along with this program.  If not, see <http:##www.gnu.org#licenses#>. ##
 ###########################################################################
 
+zmq.version <- function() {
+    .Call("get_zmq_version", PACKAGE="rzmq")
+}
+
 init.context <- function() {
     .Call("initContext", PACKAGE="rzmq")
 }
@@ -24,24 +28,39 @@ init.socket <- function(context, socket.type) {
 }
 
 bind.socket <- function(socket, address) {
-    .Call("bindSocket", socket, address, PACKAGE="rzmq")
+    invisible(.Call("bindSocket", socket, address, PACKAGE="rzmq"))
 }
 
 connect.socket <- function(socket, address) {
-    .Call("connectSocket", socket, address, PACKAGE="rzmq")
+    invisible(.Call("connectSocket", socket, address, PACKAGE="rzmq"))
 }
 
-send.socket <- function(socket, data) {
-    .Call("sendSocket", socket, serialize(data,NULL), PACKAGE="rzmq")
+send.socket <- function(socket, data, send.more=FALSE, serialize=TRUE) {
+    if(serialize) {
+        data <- serialize(data,NULL)
+    }
+
+    invisible(.Call("sendSocket", socket, data, send.more, PACKAGE="rzmq"))
 }
 
-send.null.msg <- function(socket) {
-    .Call("sendNullMsg", socket, PACKAGE="rzmq")
+send.null.msg <- function(socket, send.more=FALSE) {
+    .Call("sendNullMsg", socket, send.more, PACKAGE="rzmq")
 }
 
-receive.socket <- function(socket) {
+receive.null.msg <- function(socket) {
+    .Call("receiveNullMsg", socket, PACKAGE="rzmq")
+}
+
+receive.socket <- function(socket,unserialize=TRUE) {
     ans <- .Call("receiveSocket", socket, PACKAGE="rzmq")
-    unserialize(ans)
+    if(unserialize) {
+        ans <- unserialize(ans)
+    }
+    ans
+}
+
+send.raw.string <- function(socket,data,send.more=FALSE) {
+    .Call("sendRawString", socket, data, send.more, PACKAGE="rzmq")
 }
 
 receive.string <- function(socket) {
@@ -56,76 +75,86 @@ receive.double <- function(socket) {
     .Call("receiveDouble", socket, PACKAGE="rzmq")
 }
 
-create.sink <- function(address, num_items) {
-    .Call("createSink", address, as.integer(num_items), PACKAGE="rzmq")
+set.hwm <- function(socket, option.value) {
+    if(zmq.version() >= "3.0.0") {
+        stop("ZMQ_HWM removed from libzmq3")
+    } else {
+        .Call("set_hwm",socket, option.value, PACKAGE="rzmq")
+    }
 }
 
-get.sink.results <- function(sink) {
-    .Call("getSinkResults", sink, PACKAGE="rzmq")
+set.swap <- function(socket, option.value) {
+    if(zmq.version() >= "3.0.0") {
+        stop("ZMQ_SWAP removed from libzmq3")
+    } else {
+        .Call("set_swap",socket, option.value, PACKAGE="rzmq")
+    }
 }
 
-zmq.cluster.lapply <- function(cluster,X,FUN,...,deathstar.port=6000,control.port=6001) {
-    remote.exec <- function(socket,index,fun,...) {
-        send.socket(socket,data=list(index=index,fun=fun,args=list(...)))
+set.affinity <- function(socket, option.value) {
+    .Call("set_affinity",socket, option.value, PACKAGE="rzmq")
+}
+
+set.identity <- function(socket, option.value) {
+    .Call("set_identity",socket, option.value, PACKAGE="rzmq")
+}
+
+subscribe <- function(socket, option.value) {
+    invisible(.Call("subscribe",socket, option.value, PACKAGE="rzmq"))
+}
+
+unsubscribe <- function(socket, option.value) {
+    .Call("unsubscribe",socket, option.value, PACKAGE="rzmq")
+}
+
+set.rate <- function(socket, option.value) {
+    .Call("set_rate",socket, option.value, PACKAGE="rzmq")
+}
+
+set.recovery.ivl <- function(socket, option.value) {
+    .Call("set_recovery_ivl",socket, option.value, PACKAGE="rzmq")
+}
+
+set.recovery.ivl.msec <- function(socket, option.value) {
+    if(zmq.version() >= "3.0.0") {
+        stop("ZMQ_RECOVERY_IVL_MSEC removed from libzmq3")
+    } else {
+        .Call("set_recovery_ivl_msec",socket, option.value, PACKAGE="rzmq")
     }
+}
 
-    FUN <- match.fun(FUN)
-    if (!is.vector(X) || is.object(X))
-        X <- as.list(X)
-
-    N <- length(X)
-    context = init.context()
-    ## using a dealer socket locally will cache the requests in local and remote buffers
-    ## this could fail if your request messages are big enough to exhaust swap space
-    ## on local or remote devices, however if your messaing workflow is this large, then
-    ## you should either use s3 to move your data across, and use messages to index into it
-    ## or write your own messaging pattern
-    execution.socket = init.socket(context,"ZMQ_DEALER")
-
-    ## connect exec socket to all remote servers
-    control.endpoints <- paste("tcp://",cluster,":",control.port,sep="")
-    exec.endpoints <- paste("tcp://",cluster,":",deathstar.port,sep="")
-
-    ## ensure ndoes are available for execution
-    ## to avoid msg hogging / slow joiner issues
-    for(node in control.endpoints) {
-        cat("checking",node,"status: ")
-        control.socket = init.socket(context,"ZMQ_REQ")
-        connect.socket(control.socket,node)
-        send.null.msg(control.socket)
-        status <- receive.string(control.socket)
-        cat(status,"\n")
+set.mcast.loop <- function(socket, option.value) {
+    if(zmq.version() >= "3.0.0") {
+        stop("ZMQ_MCAST_LOOP removed from libzmq3")
+    } else {
+        .Call("set_mcast_loop",socket, option.value, PACKAGE="rzmq")
     }
+}
 
-    ## connect to remote nodes
-    for(node in exec.endpoints) {
-        connect.socket(execution.socket,node)
-    }
+set.sndbuf <- function(socket, option.value) {
+    .Call("set_sndbuf",socket, option.value, PACKAGE="rzmq")
+}
 
-    ## submit jobs
-    for(i in 1:N) {
-        remote.exec(socket=execution.socket,index=i,fun=FUN,X[[i]],...)
-    }
+set.rcvbuf <- function(socket, option.value) {
+    .Call("set_rcvbuf",socket, option.value, PACKAGE="rzmq")
+}
 
-    ## pick up restuls
-    ans <- vector("list",N)
-    for(i in 1:N) {
-        ans[[i]] <- receive.socket(execution.socket)
-    }
+set.linger <- function(socket, option.value) {
+    .Call("set_linger",socket, option.value, PACKAGE="rzmq")
+}
 
-    ## reorder anser based on returned index numbers
-    ans.ordered <- vector("list",N)
+set.reconnect.ivl <- function(socket, option.value) {
+    .Call("set_reconnect_ivl",socket, option.value, PACKAGE="rzmq")
+}
 
-    ## apply names if they exist
-    if(!is.null(names(X))) {
-        names(ans.ordered) <- names(X)
-    }
+set.zmq.backlog <- function(socket, option.value) {
+    .Call("set_zmq_backlog",socket, option.value, PACKAGE="rzmq")
+}
 
-    for(i in 1:N) {
-        ans.ordered[[ ans[[i]]$index ]] <- ans[[i]]$result
-    }
+set.reconnect.ivl.max <- function(socket, option.value) {
+    .Call("set_reconnect_ivl_max",socket, option.value, PACKAGE="rzmq")
+}
 
-    execution.report <- as.matrix(table(unlist(lapply(ans,"[[","node"))))
-    attr(ans.ordered,"execution.report") <- execution.report
-    ans.ordered
+get.rcvmore <- function(socket) {
+    .Call("get_rcvmore",socket,PACKAGE="rzmq")
 }
