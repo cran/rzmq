@@ -5,14 +5,20 @@
 \alias{receive.int}
 \alias{receive.double}
 \title{
-Receive a message from the socket referenced by the socket argument .
+Receive a message from the socket referenced by the socket argument.
 }
 \description{
 The zmq_recv() function shall receive a message from the socket
-referenced by the socket argument. If there are no messages available on the specified socket the function shall block until the request can be satisfied.
+referenced by the socket argument. If there are no messages available
+on the specified socket, by default the function shall block until the request
+can be satisfied.
+A non-blocking receive can be obtained by setting dont.wait to TRUE
+If there are no messages available on the specified socket, the
+receive.socket() call will return NULL immediately.
+
 }
 \usage{
-receive.socket(socket, unserialize=TRUE)
+receive.socket(socket, unserialize=TRUE, dont.wait=FALSE)
 receive.null.msg(socket)
 receive.string(socket)
 receive.int(socket)
@@ -20,12 +26,15 @@ receive.double(socket)
 }
 
 \arguments{
-  \item{socket}{a zmq socket object}
-  \item{unserialize}{whether to call unserialize on the received data}
+\item{socket}{a zmq socket object}
+\item{unserialize}{whether to call unserialize on the received data}
+\item{dont.wait}{defaults to false, for blocking receive. Set to TRUE for non-blocking receive.}
 }
 \value{
   the value sent from the remote server or NULL on failure.
-  or a logical for receive.null.msg indicating whether the msg was zero size.
+  If dont.wait was TRUE and a message was not immediately
+  available for receipt, NULL is returned and get.zmq.errno() is set to 11
+  or get.zmq.strerror() is set to EAGAIN.
 }
 \references{
 http://www.zeromq.org
@@ -37,7 +46,7 @@ ZMQ was written by Martin Sustrik <sustrik@250bpm.com> and Martin Lucina <mato@k
 rzmq was written by Whit Armstrong.
 }
 \seealso{
-  \code{\link{connect.socket},\link{bind.socket},\link{receive.socket},\link{send.socket}}
+  \code{\link{connect.socket},\link{bind.socket},\link{receive.socket},\link{send.socket},\link{poll.socket}}
 }
 \examples{\dontrun{
 library(rzmq)

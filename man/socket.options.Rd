@@ -16,6 +16,8 @@
 \alias{set.zmq.backlog}
 \alias{set.reconnect.ivl.max}
 \alias{get.rcvmore}
+\alias{get.send.timeout}
+\alias{set.send.timeout}
 
 \title{
   set a socket option.
@@ -44,6 +46,9 @@ set.reconnect.ivl(socket, option.value)
 set.zmq.backlog(socket, option.value)
 set.reconnect.ivl.max(socket, option.value)
 get.rcvmore(socket)
+get.send.timeout(socket)
+set.send.timeout(socket, option.value)
+
 }
 
 \arguments{
@@ -65,7 +70,7 @@ get.rcvmore(socket)
 }
 
 \seealso{
-  \code{\link{connect.socket},\link{bind.socket},\link{receive.socket},\link{send.socket}}
+  \code{\link{connect.socket},\link{bind.socket},\link{receive.socket},\link{send.socket},\link{poll.socket}}
 }
 \examples{\dontrun{
 

@@ -19,6 +19,14 @@ zmq.version <- function() {
     .Call("get_zmq_version", PACKAGE="rzmq")
 }
 
+zmq.errno <- function() {
+    .Call("get_zmq_errno", PACKAGE="rzmq")
+}
+
+zmq.strerror <- function() {
+    .Call("get_zmq_strerror", PACKAGE="rzmq")
+}
+
 init.context <- function() {
     .Call("initContext", PACKAGE="rzmq")
 }
@@ -51,12 +59,28 @@ receive.null.msg <- function(socket) {
     .Call("receiveNullMsg", socket, PACKAGE="rzmq")
 }
 
-receive.socket <- function(socket,unserialize=TRUE) {
-    ans <- .Call("receiveSocket", socket, PACKAGE="rzmq")
-    if(unserialize) {
+receive.socket <- function(socket, unserialize=TRUE,dont.wait=FALSE) {
+    ans <- .Call("receiveSocket", socket, dont.wait, PACKAGE="rzmq")
+
+    if(!is.null(ans) && unserialize) {
         ans <- unserialize(ans)
     }
     ans
+}
+
+receive.multipart <- function(socket) {
+  parts = list(receive.socket(socket, unserialize=FALSE))
+  while(get.rcvmore(socket)) {
+    parts = append(parts, list(receive.socket(socket, unserialize=FALSE)))
+  }
+  return(parts)
+}
+
+send.multipart <- function(socket, parts) {
+  for (part in parts[1:(length(parts)-1)]) {
+    send.socket(socket, part, send.more=TRUE, serialize=FALSE)
+  }
+  send.socket(socket, parts[[length(parts)]], send.more=FALSE, serialize=FALSE)
 }
 
 send.raw.string <- function(socket,data,send.more=FALSE) {
@@ -73,6 +97,11 @@ receive.int <- function(socket) {
 
 receive.double <- function(socket) {
     .Call("receiveDouble", socket, PACKAGE="rzmq")
+}
+
+poll.socket <- function(sockets, events, timeout=0L) {
+    if (timeout != -1L) timeout <- as.integer(timeout * 1000000)
+    .Call("pollSocket", sockets, events, timeout)
 }
 
 set.hwm <- function(socket, option.value) {
@@ -157,4 +186,12 @@ set.reconnect.ivl.max <- function(socket, option.value) {
 
 get.rcvmore <- function(socket) {
     .Call("get_rcvmore",socket,PACKAGE="rzmq")
+}
+
+set.send.timeout <- function(socket, option.value) {
+    .Call("set_sndtimeo", socket, option.value, PACKAGE="rzmq")
+}
+
+get.send.timeout <- function(socket) {
+    .Call("get_sndtimeo", socket, PACKAGE="rzmq")
 }

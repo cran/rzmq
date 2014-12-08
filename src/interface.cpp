@@ -19,6 +19,8 @@
 #include <string>
 #include <sstream>
 #include <stdexcept>
+#include <zmq.h>
+static_assert(ZMQ_VERSION_MAJOR >= 3,"The minimum required version of libzmq is 3.0.0.");
 #include <zmq.hpp>
 #include "interface.h"
 
@@ -30,6 +32,20 @@ SEXP get_zmq_version() {
   out << major << "." << minor << "." << patch;
   PROTECT(ans = allocVector(STRSXP,1));
   SET_STRING_ELT(ans, 0, mkChar(out.str().c_str()));
+  UNPROTECT(1);
+  return ans;
+}
+
+SEXP get_zmq_errno() {
+  SEXP ans; PROTECT(ans = allocVector(INTSXP,1));
+  INTEGER(ans)[0] = zmq_errno();
+  UNPROTECT(1);
+  return ans;
+}
+
+SEXP get_zmq_strerror() {
+  SEXP ans; PROTECT(ans = allocVector(STRSXP,1));
+  SET_STRING_ELT(ans, 0, mkChar(zmq_strerror(zmq_errno())));
   UNPROTECT(1);
   return ans;
 }
@@ -170,6 +186,109 @@ SEXP bindSocket(SEXP socket_, SEXP address_) {
   return ans;
 }
 
+static short rzmq_build_event_bitmask(SEXP askevents) {
+    short bitmask = 0;
+    if(TYPEOF(askevents) == STRSXP) {
+        for (int i = 0; i < LENGTH(askevents); i++) {
+            const char *ask = translateChar(STRING_ELT(askevents, i));
+            if (strcmp(ask, "read") == 0) {
+                bitmask |= ZMQ_POLLIN;
+            } else if (strcmp(ask, "write") == 0) {
+                bitmask |= ZMQ_POLLOUT;
+            } else if (strcmp(ask, "error") == 0) {
+                bitmask |= ZMQ_POLLERR;
+            } else {
+                error("unrecognized requests poll event %s.", ask);
+            }
+        }
+    } else {
+        error("event list passed to poll must be a string or vector of strings");
+    }
+    return bitmask;
+}
+
+SEXP pollSocket(SEXP sockets_, SEXP events_, SEXP timeout_) {
+    SEXP result;
+    
+    if(TYPEOF(timeout_) != INTSXP) {
+        error("poll timeout must be an integer.");
+    }
+
+    if(TYPEOF(sockets_) != VECSXP || LENGTH(sockets_) == 0) {
+        error("A non-empy list of sockets is required as first argument.");
+    }
+
+    int nsock = LENGTH(sockets_);
+    PROTECT(result = allocVector(VECSXP, nsock));
+
+    if (TYPEOF(events_) != VECSXP) {
+        error("event list must be a list of strings or a list of vectors of strings.");
+    }
+    if(LENGTH(events_) != nsock) {
+        error("event list must be the same length as socket list.");
+    }
+
+    zmq_pollitem_t *pitems = (zmq_pollitem_t*)R_alloc(nsock, sizeof(zmq_pollitem_t));
+    if (pitems == NULL) {
+        error("failed to allocate memory for zmq_pollitem_t array.");
+    }
+
+    try {
+        for (int i = 0; i < nsock; i++) {
+            zmq::socket_t* socket = reinterpret_cast<zmq::socket_t*>(checkExternalPointer(VECTOR_ELT(sockets_, i), "zmq::socket_t*"));
+            pitems[i].socket = (void*)*socket;
+            pitems[i].events = rzmq_build_event_bitmask(VECTOR_ELT(events_, i));
+        }
+
+        int rc = zmq::poll(pitems, nsock, *INTEGER(timeout_));
+
+        if(rc >= 0) {
+            for (int i = 0; i < nsock; i++) {
+                SEXP events, names;
+
+                // Pre count number of polled events so we can
+                // allocate appropriately sized lists.
+                short eventcount = 0;
+                if (pitems[i].events & ZMQ_POLLIN) eventcount++;
+                if (pitems[i].events & ZMQ_POLLOUT) eventcount++;
+                if (pitems[i].events & ZMQ_POLLERR) eventcount++;
+
+                PROTECT(events = allocVector(VECSXP, eventcount));
+                PROTECT(names = allocVector(VECSXP, eventcount));
+
+                eventcount = 0;
+                if (pitems[i].events & ZMQ_POLLIN) {
+                    SET_VECTOR_ELT(events, eventcount, ScalarLogical(pitems[i].revents & ZMQ_POLLIN));
+                    SET_VECTOR_ELT(names, eventcount, mkChar("read"));
+                    eventcount++;
+                }
+
+                if (pitems[i].events & ZMQ_POLLOUT) {
+                    SET_VECTOR_ELT(names, eventcount, mkChar("write"));
+
+                    SET_VECTOR_ELT(events, eventcount, ScalarLogical(pitems[i].revents & ZMQ_POLLOUT));
+                    eventcount++;
+                }
+
+                if (pitems[i].events & ZMQ_POLLERR) {
+                    SET_VECTOR_ELT(names, eventcount, mkChar("error"));
+                    SET_VECTOR_ELT(events, eventcount, ScalarLogical(pitems[i].revents & ZMQ_POLLERR));
+                }
+                setAttrib(events, R_NamesSymbol, names);
+                SET_VECTOR_ELT(result, i, events);
+            }
+        } else {
+            error("polling zmq sockets failed.");
+        }
+    } catch(std::exception& e) {
+        error(e.what());
+    }
+    // Release the result list (1), and per socket
+    // events lists with associated names (2*nsock).
+    UNPROTECT(1 + 2*nsock);
+    return result;
+}
+
 SEXP connectSocket(SEXP socket_, SEXP address_) {
   SEXP ans; PROTECT(ans = allocVector(LGLSXP,1)); LOGICAL(ans)[0] = 1;
 
@@ -272,24 +391,32 @@ SEXP receiveNullMsg(SEXP socket_) {
   return ans;
 }
 
-SEXP receiveSocket(SEXP socket_) {
+SEXP receiveSocket(SEXP socket_, SEXP dont_wait_) {
   SEXP ans;
-  bool status(false);
   zmq::message_t msg;
+
+  if(TYPEOF(dont_wait_) != LGLSXP) {
+    REprintf("dont_wait type must be logical (LGLSXP).\n");
+    return R_NilValue;
+  }
+  int flags = LOGICAL(dont_wait_)[0];
   zmq::socket_t* socket = reinterpret_cast<zmq::socket_t*>(checkExternalPointer(socket_,"zmq::socket_t*"));
-  if(!socket) { REprintf("bad socket object.\n");return R_NilValue; }
+  if(!socket) { REprintf("bad socket object.\n"); return R_NilValue; }
   try {
-    status = socket->recv(&msg);
+    if(socket->recv(&msg, flags)) {
+      PROTECT(ans = allocVector(RAWSXP,msg.size()));
+      memcpy(RAW(ans),msg.data(),msg.size());
+      UNPROTECT(1);
+      return ans;
+    } else {
+      // socket->recv returned false, but did not throw
+      // this condition implies EAGAIN
+      // see here for logic: https://github.com/zeromq/cppzmq/blob/master/zmq.hpp#L449
+      return R_NilValue;
+    }
   } catch(std::exception& e) {
     REprintf("%s\n",e.what());
   }
-  if(status) {
-    PROTECT(ans = allocVector(RAWSXP,msg.size()));
-    memcpy(RAW(ans),msg.data(),msg.size());
-    UNPROTECT(1);
-    return ans;
-  }
-
   return R_NilValue;
 }
 
@@ -525,8 +652,13 @@ SEXP set_rate(SEXP socket_, SEXP option_value_) {
   if(!socket) { REprintf("bad socket object.\n");return R_NilValue; }
   if(TYPEOF(option_value_)!=INTSXP) { REprintf("option value must be an int.\n");return R_NilValue; }
   SEXP ans; PROTECT(ans = allocVector(LGLSXP,1)); LOGICAL(ans)[0] = 1;
+#if ZMQ_VERSION_MAJOR > 2
+  int option_value;
+#else
+  int64_t option_value;
+#endif
 
-  int64_t option_value(INTEGER(option_value_)[0]);
+  option_value = INTEGER(option_value_)[0];
   try {
     socket->setsockopt(ZMQ_RATE, &option_value, sizeof(int64_t));
   } catch(std::exception& e) {
@@ -543,8 +675,12 @@ SEXP set_recovery_ivl(SEXP socket_, SEXP option_value_) {
   if(!socket) { REprintf("bad socket object.\n");return R_NilValue; }
   if(TYPEOF(option_value_)!=INTSXP) { REprintf("option value must be an int.\n");return R_NilValue; }
   SEXP ans; PROTECT(ans = allocVector(LGLSXP,1)); LOGICAL(ans)[0] = 1;
-
-  int64_t option_value(INTEGER(option_value_)[0]);
+#if ZMQ_VERSION_MAJOR > 2
+  int option_value;
+#else
+  int64_t option_value;
+#endif
+  option_value = INTEGER(option_value_)[0];
   try {
     socket->setsockopt(ZMQ_RECOVERY_IVL, &option_value, sizeof(int64_t));
   } catch(std::exception& e) {
@@ -605,7 +741,13 @@ SEXP set_sndbuf(SEXP socket_, SEXP option_value_) {
   if(TYPEOF(option_value_)!=INTSXP) { REprintf("option value must be an int.\n");return R_NilValue; }
   SEXP ans; PROTECT(ans = allocVector(LGLSXP,1)); LOGICAL(ans)[0] = 1;
 
-  uint64_t option_value(INTEGER(option_value_)[0]);
+#if ZMQ_VERSION_MAJOR > 2
+  int option_value;
+#else
+  int64_t option_value;
+#endif
+
+  option_value = INTEGER(option_value_)[0];
   try {
     socket->setsockopt(ZMQ_SNDBUF, &option_value, sizeof(uint64_t));
   } catch(std::exception& e) {
@@ -623,7 +765,13 @@ SEXP set_rcvbuf(SEXP socket_, SEXP option_value_) {
   if(TYPEOF(option_value_)!=INTSXP) { REprintf("option value must be an int.\n");return R_NilValue; }
   SEXP ans; PROTECT(ans = allocVector(LGLSXP,1)); LOGICAL(ans)[0] = 1;
 
-  uint64_t option_value(INTEGER(option_value_)[0]);
+#if ZMQ_VERSION_MAJOR > 2
+  int option_value;
+#else
+  int64_t option_value;
+#endif
+
+  option_value = INTEGER(option_value_)[0];
   try {
     socket->setsockopt(ZMQ_RCVBUF, &option_value, sizeof(uint64_t));
   } catch(std::exception& e) {
@@ -706,13 +854,56 @@ SEXP set_reconnect_ivl_max(SEXP socket_, SEXP option_value_) {
   return ans;
 }
 
+SEXP set_sndtimeo(SEXP socket_, SEXP option_value_) {
+
+  zmq::socket_t* socket = reinterpret_cast<zmq::socket_t*>(checkExternalPointer(socket_,"zmq::socket_t*"));
+  if(!socket) { REprintf("bad socket object.\n");return R_NilValue; }
+  if(TYPEOF(option_value_)!=INTSXP) { REprintf("option value must be an int.\n");return R_NilValue; }
+  SEXP ans; PROTECT(ans = allocVector(LGLSXP,1)); LOGICAL(ans)[0] = 1;
+
+  int option_value(INTEGER(option_value_)[0]);
+  try {
+    socket->setsockopt(ZMQ_SNDTIMEO, &option_value, sizeof(int));
+  } catch(std::exception& e) {
+    REprintf("%s\n",e.what());
+    LOGICAL(ans)[0] = 0;
+  }
+  UNPROTECT(1);
+  return ans;
+}
+
+SEXP get_sndtimeo(SEXP socket_) {
+
+  zmq::socket_t* socket = reinterpret_cast<zmq::socket_t*>(checkExternalPointer(socket_,"zmq::socket_t*"));
+  if(!socket) { REprintf("bad socket object.\n");return R_NilValue; }
+#if ZMQ_VERSION_MAJOR > 2
+  int option_value;
+#else
+  int64_t option_value;
+#endif
+  size_t option_value_len = sizeof(option_value);
+  try {
+    socket->getsockopt(ZMQ_SNDTIMEO, &option_value, &option_value_len);
+  } catch(std::exception& e) {
+    REprintf("%s\n",e.what());
+    return R_NilValue;
+  }
+  SEXP ans; PROTECT(ans = allocVector(REALSXP,1));
+  REAL(ans)[0] = static_cast<int>(option_value);
+  UNPROTECT(1);
+  return ans;
+}
+
 
 SEXP get_rcvmore(SEXP socket_) {
 
   zmq::socket_t* socket = reinterpret_cast<zmq::socket_t*>(checkExternalPointer(socket_,"zmq::socket_t*"));
   if(!socket) { REprintf("bad socket object.\n");return R_NilValue; }
-
+#if ZMQ_VERSION_MAJOR > 2
+  int option_value;
+#else
   int64_t option_value;
+#endif
   size_t option_value_len = sizeof(option_value);
   try {
     socket->getsockopt(ZMQ_RCVMORE, &option_value, &option_value_len);
