@@ -43,9 +43,14 @@ connect.socket <- function(socket, address) {
     invisible(.Call("connectSocket", socket, address, PACKAGE="rzmq"))
 }
 
-send.socket <- function(socket, data, send.more=FALSE, serialize=TRUE) {
+disconnect.socket <- function(socket, address) {
+    invisible(.Call("disconnectSocket", socket, address, PACKAGE="rzmq"))
+}
+
+send.socket <- function(socket, data, send.more=FALSE, serialize=TRUE,
+                        xdr=.Platform$endian=="big") {
     if(serialize) {
-        data <- serialize(data,NULL)
+        data <- serialize(data, NULL, xdr=xdr)
     }
 
     invisible(.Call("sendSocket", socket, data, send.more, PACKAGE="rzmq"))
