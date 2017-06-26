@@ -1,6 +1,7 @@
-2c4c9bbaa7b29436076d6f1565933e2c *DESCRIPTION
+3848e3f99e6acb4593789f2de11a0fd0 *DESCRIPTION
 2bac3d82c650779b1660c51627c87737 *NAMESPACE
-2ea8cc68867744d14b89fffb58b14e2a *R/rzmq.R
+d2288d68e261e483a00cf3c2aee9bd35 *NEWS
+424ea4fcc5e90661947d97995e7f0a1e *R/rzmq.R
 989913553c1ccc88403285ad8dbbbbb3 *README.md
 6071edd604dbeb75308cfbedc7790398 *cleanup
 e61789ab10ad4f5220afcf155f55d1f8 *configure
@@ -18,7 +19,7 @@ d6edbc8c1b01999c5ae5bbf6d2f589d9 *man/send.multipart.Rd
 5942137a08f9ab8014f94f2664709cb3 *man/zmq.version.Rd
 a0513b33383601a8c54187b5196095cb *src/Makevars.in
 d114e8ff3d60404913e0d964d6118af1 *src/Makevars.win
-2d06431a72848a2dd240d8130dfa6863 *src/interface.cpp
+3f2a7a49d88cc1b86924ad2c6af4c913 *src/interface.cpp
 3c3542c506b75e5261c8f69d7605cc07 *src/interface.h
 c46fbf449b4f9b763781b46384ee3b69 *src/register.c
 999a48ad88e77f07790c9d8038e0cdb5 *tests/poll.R
