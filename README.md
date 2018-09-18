@@ -1,6 +1,8 @@
 ## rzmq 
+
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![Build Status](https://travis-ci.org/ropensci/rzmq.svg)](https://travis-ci.org/ropensci/rzmq)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jeroen/rzmq?branch=master&svg=true)](https://ci.appveyor.com/project/jeroen/rzmq)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/ropensci/rzmq?branch=master)](https://ci.appveyor.com/project/jeroen/rzmq)
 [![Package-License](http://img.shields.io/badge/license-GPL--3-brightgreen.svg?style=flat)](http://www.gnu.org/licenses/gpl-3.0.html) [![CRAN](http://www.r-pkg.org/badges/version/rzmq)](https://cran.r-project.org/package=rzmq) [![Downloads](http://cranlogs.r-pkg.org/badges/rzmq?color=brightgreen)](http://www.r-pkg.org/pkg/rzmq)
 
 ### Purpose
@@ -29,10 +31,10 @@ Installation from source requires [`ZeroMQ`](http://zeromq.org/area:download). O
 sudo apt-get install -y libzmq3-dev
 ```
 
-On __Fedora__ we need [zeromq3-devel](https://apps.fedoraproject.org/packages/zeromq3-devel):
+On __Fedora__ we need [zeromq-devel](https://apps.fedoraproject.org/packages/zeromq-devel):
 
 ```
-sudo yum install zeromq3-devel
+sudo yum install zeromq-devel
 ````
 
 On __CentOS / RHEL__ we install [zeromq3-devel](https://apps.fedoraproject.org/packages/zeromq3-devel) via EPEL:

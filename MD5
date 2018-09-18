@@ -1,10 +1,10 @@
-95a2809ad5baa7436cfd78d29aac3ad8 *DESCRIPTION
+2e227ce64ade34c1b7faad23e0016f73 *DESCRIPTION
 f658cd76cc014b4f3daae1041bc7537d *NAMESPACE
-d14a8fe589ac4c608ebb349f89228024 *NEWS
+035fb9969a3b296f97cc378e0a9b1b00 *NEWS
 e8adfd72ff8e859494c813d4110fe851 *R/rzmq.R
-989913553c1ccc88403285ad8dbbbbb3 *README.md
+2483cfe30c050755e9fbee4521cf6e8e *README.md
 6071edd604dbeb75308cfbedc7790398 *cleanup
-e61789ab10ad4f5220afcf155f55d1f8 *configure
+51817d8c06f46b6669e21335002de868 *configure
 4c51dd0ae41fee4ec46aecd88783defe *inst/zmq.hpp
 f33eb03e793af408106b8fc6a33dcc37 *man/bind.socket.Rd
 95f243e63ffdd635f8af8ffaddc7c820 *man/connect.socket.Rd
@@ -20,7 +20,7 @@ d6edbc8c1b01999c5ae5bbf6d2f589d9 *man/send.multipart.Rd
 5942137a08f9ab8014f94f2664709cb3 *man/zmq.version.Rd
 a0513b33383601a8c54187b5196095cb *src/Makevars.in
 d114e8ff3d60404913e0d964d6118af1 *src/Makevars.win
-8f4883b0bbee53622a1589dc0894788c *src/interface.cpp
+76ef5b85bad6eb9b3c8be56677cc5431 *src/interface.cpp
 9fb0298e40fd35202232394375951a51 *src/interface.h
 c46fbf449b4f9b763781b46384ee3b69 *src/register.c
 999a48ad88e77f07790c9d8038e0cdb5 *tests/poll.R
