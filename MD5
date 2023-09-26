@@ -1,6 +1,6 @@
-b12889389da0d4894408374ac36a3cdc *DESCRIPTION
+16f9520689728afe11b097e5831a78d0 *DESCRIPTION
 3aa790d31dcc42febb918bde1b22ce63 *NAMESPACE
-c721df7b68aafbb1086c4ed369ac2382 *NEWS
+eefff06450a5d8969548a9eef8ce7b0e *NEWS
 92820fc9e9b4d27fdca68721215ea9b2 *R/rzmq.R
 4ce1fcf8d4a4b68aac58e1c00c2db6d0 *cleanup
 4f516716f58e19e6d892a6f1aef36e39 *configure
@@ -18,9 +18,9 @@ b597cc327a93602e97fa78fe80762f4f *man/socket.options.Rd
 6f7df81ad3da6f95b216d10ae03aaa33 *man/zmq.error.Rd
 5942137a08f9ab8014f94f2664709cb3 *man/zmq.version.Rd
 7cca651be777745c4f2d480e049bbd31 *src/Makevars.in
-97548e28ff5cc110cf6e2d23aa33e85e *src/Makevars.win
+60825ca1b7b7d6f9084b92812074a830 *src/Makevars.win
 a0d9c8af38513a9e2198344902d53116 *src/interface.cpp
 05094bb014707075bbbabd6a4780e438 *src/interface.h
 c46fbf449b4f9b763781b46384ee3b69 *src/register.c
 999a48ad88e77f07790c9d8038e0cdb5 *tests/poll.R
-52c998aadbe5113ab80d0278a018fce0 *tools/winlibs.R
+1d6a404aa7b0ada4071ba7b6240bcb1b *tools/winlibs.R
