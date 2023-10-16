@@ -1,13 +1,13 @@
-16f9520689728afe11b097e5831a78d0 *DESCRIPTION
+498c4f5e75b73e3a1fbeff9ba3510134 *DESCRIPTION
 3aa790d31dcc42febb918bde1b22ce63 *NAMESPACE
-eefff06450a5d8969548a9eef8ce7b0e *NEWS
+15731fa015d9df7be2189d71e7b22c5c *NEWS
 92820fc9e9b4d27fdca68721215ea9b2 *R/rzmq.R
 4ce1fcf8d4a4b68aac58e1c00c2db6d0 *cleanup
 4f516716f58e19e6d892a6f1aef36e39 *configure
 4c51dd0ae41fee4ec46aecd88783defe *inst/zmq.hpp
 f33eb03e793af408106b8fc6a33dcc37 *man/bind.socket.Rd
 95f243e63ffdd635f8af8ffaddc7c820 *man/connect.socket.Rd
-1a97287207a9c87f5fe5dba618c8fa95 *man/init.context.Rd
+58adbceaf22ac039af43c034ca7de50c *man/init.context.Rd
 2bd775f10141cee50723219570f26e71 *man/init.message.Rd
 edf4a4ed48da8828434cddc069054e62 *man/poll.socket.Rd
 a2abca956b9808fc0441b6577c39856a *man/receive.multipart.Rd
@@ -18,7 +18,7 @@ b597cc327a93602e97fa78fe80762f4f *man/socket.options.Rd
 6f7df81ad3da6f95b216d10ae03aaa33 *man/zmq.error.Rd
 5942137a08f9ab8014f94f2664709cb3 *man/zmq.version.Rd
 7cca651be777745c4f2d480e049bbd31 *src/Makevars.in
-60825ca1b7b7d6f9084b92812074a830 *src/Makevars.win
+4d518e403a49e0c6c59af7152edcc9c7 *src/Makevars.win
 a0d9c8af38513a9e2198344902d53116 *src/interface.cpp
 05094bb014707075bbbabd6a4780e438 *src/interface.h
 c46fbf449b4f9b763781b46384ee3b69 *src/register.c
