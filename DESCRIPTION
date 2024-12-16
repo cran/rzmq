@@ -1,6 +1,6 @@
 Package: rzmq
 Title: R Bindings for 'ZeroMQ'
-Version: 0.9.14
+Version: 0.9.15
 Authors@R: c(
     person("Whit", "Armstrong", , "armstrong.whit@gmail.com", role = "aut"),
     person("Michael", "Schubert", role = "ctb"),
@@ -16,10 +16,10 @@ URL: https://docs.ropensci.org/rzmq/
 BugReports: https://github.com/ropensci/rzmq/issues
 RoxygenNote: 7.2.3
 NeedsCompilation: yes
-Packaged: 2024-10-03 14:13:12 UTC; jeroen
+Packaged: 2024-12-16 14:48:33 UTC; jeroen
 Author: Whit Armstrong [aut],
   Michael Schubert [ctb],
   Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>)
 Maintainer: Jeroen Ooms <jeroenooms@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-10-04 08:40:05 UTC
+Date/Publication: 2024-12-16 15:00:08 UTC
